@@ -1,5 +1,0 @@
-library(Rcpp)
-source('smesir/R/smesir.R')
-source('smesir/R/smesir_forecast.R')
-source('smesir/R/convergence_diagnostics.R')
-sourceCpp('smesir/src/sir.cpp')
