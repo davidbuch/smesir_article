@@ -3,7 +3,7 @@ library(smesir)
 slurm_task_id <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
 
 endpoint <- c(74, 77, 90)[ceiling(slurm_task_id/27)] # weeks of data
-version <- slurm_task_id %% 27 # used later to select epi parameters
+version <- ((slurm_task_id - 1) %% 27) + 1 # used later to select epi parameters
 
 data("covid_cases")
 data("covid_deaths")
@@ -62,4 +62,4 @@ if(endpoint == 74){ # endpoint 74, no delta covariate
                       region_names = us_states)
 }
 
-saveRDS(state_fit, file = paste0("output/us_analysis/sfit_",endpoint,"_",version,".rds"))
+saveRDS(state_fit, file = paste0("./output/us_analysis/sfit_",endpoint,"_",version,".rds"))
