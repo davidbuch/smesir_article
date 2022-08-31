@@ -47,8 +47,8 @@ par(mfrow = c(1,1))
 dev.off()
 
 ## Set Covariate Effects
-alpha0 <- 1.25
-phi0 <- c(0,-.5,0.5)
+alpha0 <- log(1.25)
+phi0 <- log(c(1.00,0.75,1.25))
 
 # scale of the local variation around the global effects
 local_intercept_var <- 0.15^2
@@ -60,7 +60,7 @@ phiu <- rnorm(K, sd = 0.3)
 ## Compute regional beta from covariates, covariate effects, and "random effects"
 beta <- matrix(NA,J,K)
 for(k in 1:K){
-  beta[,k] <- alpha[k] + X1[,k]*phi[1,k] + X2[,k]*phi[2,k] + X3[,k]*phi[3,k] + U1[,k]*phiu[k]
+  beta[,k] <- exp(alpha[k] + X1[,k]*phi[1,k] + X2[,k]*phi[2,k] + X3[,k]*phi[3,k] + U1[,k]*phiu[k])
 }
 
 ## Plot transmission rate
@@ -127,51 +127,75 @@ close(fileConn)
 
 pdf("output/sim_study_case/simstudy_posteriors.pdf")
 par(mfrow = c(3,3))
+prior_rgb <- col2rgb('moccasin') / 255
+post_rgb <- col2rgb('dodgerblue2') / 255
+truth_color <- 'salmon4'
 # 9 plots (8 histograms, one time series with CI) global intercept, global effects 1, 2, 3, local intercept variance, local effect variance, dispersion parameter (region 1), iip (region 1), temporal random effect (region 1)
 # 1. global intercept
 global_intercept_prior <-  rnorm(10000, mean = 0, sd = sqrt(sfit$prior$V0[1]))
-hist(global_intercept_prior, col = rgb(0,0,1,0.5), breaks = seq(-20,20,0.1), freq = F, main = "(a)", ylim = c(0,3.5), xlim = c(0,2), xlab = NA)
-hist(sfit$samples$Xi0[,1], col = rgb(0,1,0,0.5), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
-abline(v = alpha0, col = "red",lwd = 2)
+hist(global_intercept_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, main = "(a)", ylim = c(0,3.5), xlim = c(-1,1), xlab = NA)
+abline(v = alpha0, col = truth_color, lwd = 3)
+hist(sfit$samples$Xi0[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
+
 # 2. global effect 1
 global_coef_prior <-  rnorm(10000, mean = 0, sd = sqrt(sfit$prior$V0[2]))
-hist(global_coef_prior, col = rgb(0,0,1,0.5), breaks = seq(-20,20,0.1), freq = F, main = "(b)", ylim = c(0,3.5), xlim = c(-1,1), xlab = NA)
-hist(sfit$samples$Xi0[,2], col = rgb(0,1,0,0.5), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
-abline(v = phi0[1], col = "red",lwd = 2)
+hist(global_coef_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, main = "(b)", ylim = c(0,3.5), xlim = c(-1,1), xlab = NA)
+abline(v = phi0[1], col = truth_color, lwd = 3)
+hist(sfit$samples$Xi0[,2], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
+
 # 3. global effect 2
-hist(global_coef_prior, col = rgb(0,0,1,0.5), breaks = seq(-20,20,0.1), freq = F, main = "(c)", ylim = c(0,3.5), xlim = c(-1.5,0.5), xlab = NA)
-hist(sfit$samples$Xi0[,3], col = rgb(0,1,0,0.5), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
-abline(v = phi0[2], col = "red",lwd = 2)
+hist(global_coef_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, main = "(c)", ylim = c(0,3.5), xlim = c(-1,1), xlab = NA)
+abline(v = phi0[2], col = truth_color, lwd = 3)
+hist(sfit$samples$Xi0[,3], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
+
 # 4. global effect 3
-hist(global_coef_prior, col = rgb(0,0,1,0.5), breaks = seq(-20,20,0.1), freq = F, main = "(d)", ylim = c(0,3), xlim = c(-0.5,1.5), xlab = NA)
-hist(sfit$samples$Xi0[,4], col = rgb(0,1,0,0.5), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
-abline(v = phi0[3], col = "red",lwd = 2)
+hist(global_coef_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, main = "(d)", ylim = c(0,3.5), xlim = c(-1,1), xlab = NA)
+abline(v = phi0[3], col = truth_color, lwd = 3)
+hist(sfit$samples$Xi0[,4], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(-20,20,0.1), freq = F, add = TRUE)
+
 # 5. local intercept variance
 local_int_var_prior <- 1/rgamma(10000, shape = sfit$prior$IGSR[1,1], rate = sfit$prior$IGSR[1,2])
-hist(local_int_var_prior, col = rgb(0,0,1,0.5), breaks = seq(0,50,0.005), freq = F, main = "(e)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
-hist(sfit$samples$V[,1], col = rgb(0,1,0,0.5), breaks = seq(0,50,0.005), freq = F, add = TRUE)
-abline(v = local_intercept_var, col = "red",lwd = 2)
+hist(local_int_var_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, main = "(e)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
+abline(v = local_intercept_var, col = truth_color, lwd = 3)
+hist(sfit$samples$V[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, add = TRUE)
+
+
 # 6. local coef variance
 local_coef_var_prior <- 1/rgamma(10000, shape = sfit$prior$IGSR[2,1], rate = sfit$prior$IGSR[2,2])
-hist(local_coef_var_prior, col = rgb(0,0,1,0.5), breaks = seq(0,50,0.005), freq = F, main = "(f)", ylim = c(0,40), xlim = c(0,0.1), xlab = NA)
-hist(sfit$samples$V[,2], col = rgb(0,1,0,0.5), breaks = seq(0,50,0.005), freq = F, add = TRUE)
-abline(v = local_coef_var, col = "red",lwd = 2)
+hist(local_coef_var_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, main = "(f)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
+abline(v = local_coef_var, col = truth_color, lwd = 3)
+hist(sfit$samples$V[,2], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, add = TRUE)
+
+
 # 7. dispersion parameter (R1)
 local_dispersion_prior <- abs(rnorm(10000, sd = sfit$prior$expected_dispersion*sqrt(2/3.14159)))
-hist(local_dispersion_prior, col = rgb(0,0,1,0.5), breaks = seq(0,20,0.5), freq = F, main = "(g)", ylim = c(0,1.5), xlim = c(0,10), xlab = NA)
-hist(sfit$samples$DISP[,1], col = rgb(0,1,0,0.5), breaks = seq(0,20,0.5), freq = F, add = TRUE)
-abline(v = dispersion[1], col = "red",lwd = 2)
+hist(local_dispersion_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,20,0.5), freq = F, main = "(g)", ylim = c(0,1.5), xlim = c(0,10), xlab = NA)
+abline(v = dispersion[1], col = truth_color, lwd = 3)
+hist(sfit$samples$DISP[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,20,0.5), freq = F, add = TRUE)
+
 # 8. initial infectious population (R1)
 iip_prior <- rexp(10000, 1/10)
-hist(iip_prior, col = rgb(0,0,1,0.5), breaks = seq(0,200,2), freq = F, main = "(h)", ylim = c(0,0.25), xlim = c(0,40), xlab = NA)
-hist(sfit$samples$IIP[,1], col = rgb(0,1,0,0.5), breaks = seq(0,200,2), freq = F, add = TRUE)
-abline(v = IIP[1], col = "red",lwd = 2)
-# 9. temporal random effect/unobserved heterogeneity (R1) 
-re_posterior_confints <- t(apply(sfit$samples$Xi[,5:11,3]%*%t(sfit$design_matrices$R3[,5:11]),2, function(x) quantile(x,c(0.025,0.975))))
-plot(x = 1:J, y = U1[,3]*phiu[3], type = "l", col = "red", lwd = 2, xlab = NA, ylab = NA, main = "(i)", ylim = c(min(re_posterior_confints), max(re_posterior_confints)))
+hist(iip_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,200,2), freq = F, main = "(h)", ylim = c(0,0.10), xlim = c(0,40), xlab = NA)
+abline(v = IIP[1], col = truth_color, lwd = 3)
+hist(sfit$samples$IIP[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,200,2), freq = F, add = TRUE)
+
+# 9. temporal random effect/unobserved heterogeneity (R3) 
+re_posterior_confints <- t(apply(exp(sfit$samples$Xi[,5:11,3]%*%t(sfit$design_matrices$R3[,5:11])),2, function(x) quantile(x,c(0.025,0.975))))
+plot(x = 1:J, y = exp(U1[,3]*phiu[3]), type = "l", col = truth_color, lwd = 3, xlab = NA, ylab = NA, main = "(i)", ylim = c(min(re_posterior_confints), max(re_posterior_confints)))
 plot_confint <- function(bounds,density=NULL,angle=45,border=NULL,col=NA,lty = par("lty"),x=NULL){
   if(is.null(x)) x <- 1:nrow(bounds)
   polygon(c(x,rev(x)),c(bounds[,1],rev(bounds[,2])),density,angle,border,col,lty)
 }
-plot_confint(re_posterior_confints, density = 20, col = "green")
+plot_confint(re_posterior_confints, density = 20, col = rgb(post_rgb[1], post_rgb[2], post_rgb[3]))
 dev.off()
+
+
+re_posterior_confints <- t(apply(exp(sfit$samples$Xi[,,3]%*%t(sfit$design_matrices$R3)),2, function(x) quantile(x,c(0.025,0.975))))
+plot(x = 1:J, y = beta[,3], type = "l", col = truth_color, lwd = 2, xlab = NA, ylab = NA, main = "(i)", ylim = c(min(re_posterior_confints), max(re_posterior_confints)))
+plot_confint <- function(bounds,density=NULL,angle=45,border=NULL,col=NA,lty = par("lty"),x=NULL){
+  if(is.null(x)) x <- 1:nrow(bounds)
+  polygon(c(x,rev(x)),c(bounds[,1],rev(bounds[,2])),density,angle,border,col,lty)
+}
+plot_confint(re_posterior_confints, density = 20, col = rgb(post_rgb[1], post_rgb[2], post_rgb[3]))
+
+

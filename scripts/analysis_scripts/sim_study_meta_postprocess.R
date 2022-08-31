@@ -1,10 +1,10 @@
 library(xtable)
 version_list <- c("true_epi", "misspecified_epi_1", "misspecified_epi_2", "radically_misspecified_epi")
 
-FIT_SUMMARIES <- list()
-MIN_ESS <- MAX_RHAT <- GLOBAL_COVERAGE <- GLOBAL <- NULL
-LOCAL_COVERAGE <- LOCAL <- array(dim = c(6,5,1000))
 for(version in version_list){
+  FIT_SUMMARIES <- list()
+  MIN_ESS <- MAX_RHAT <- GLOBAL_COVERAGE <- GLOBAL <- NULL
+  LOCAL_COVERAGE <- LOCAL <- array(dim = c(6,5,1000))
   for(thread in 1:10){
     load(paste0("output/sim_study_meta/", version,"_", thread,".RData"))
     
