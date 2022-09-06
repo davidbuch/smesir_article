@@ -105,13 +105,9 @@ sdat <- list(deaths = Y[1:Jo,], X1 = X1[1:Jo,], X2 = X2[1:Jo,], X3 = X3[1:Jo,])
 epi_params <- list(region_populations = N, outbreak_times = T_1, mean_removal_time = 1/gamma, incidence_probabilities = psi, discount_period_length = 0)
 
 # priors should match generating distribution, 
-# prior <- list(ell = J/5, V0 = c(10,10,0.000001), 
-#               expected_initial_infected_population = 10.0,
-#               expected_dispersion = 5*sqrt(2/3.14159), # sd 5
-#               IGSR = matrix(c(rep(c(2.01,0.101),2),11,1), nrow = 3, ncol = 2, byrow = TRUE))
 prior <- list(ell = J/5, V0 = c(10,10,0.000001), 
               expected_initial_infected_population = 10.0,
-              expected_dispersion = 0.5*sqrt(2/3.14159), # sd 5
+              expected_dispersion = 0.5*sqrt(2/3.14159), # sd 0.5
               IGSR = matrix(rep(c(2.01,0.101),3), nrow = 3, ncol = 2, byrow = TRUE))
 
 start_time <- Sys.time()
@@ -168,7 +164,7 @@ hist(sfit$samples$V[,2], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75),
 
 
 # 7. dispersion parameter (R1)
-local_dispersion_prior <- abs(rnorm(10000, sd = sfit$prior$expected_dispersion*sqrt(2/3.14159)))
+local_dispersion_prior <- abs(rnorm(10000, sd = sfit$prior$expected_dispersion/sqrt(2/3.14159)))
 hist(local_dispersion_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,20,0.5), freq = F, main = "(g)", ylim = c(0,1.5), xlim = c(0,10), xlab = NA)
 abline(v = dispersion[1], col = truth_color, lwd = 3)
 hist(sfit$samples$DISP[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,20,0.5), freq = F, add = TRUE)

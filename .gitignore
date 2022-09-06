@@ -1,4 +1,8 @@
+*.DS_Store
 .Rproj.user
 .Rhistory
-.RData
+*.RData
 .Ruserdata
+*.rds
+**/logs/errors_**
+**/logs/results_*

@@ -48,7 +48,7 @@ thread <- Sys.getenv("SLURM_ARRAY_TASK_ID")
 prior <- list(ell = J/5, V0 = c(10,10,0.000001), 
               expected_initial_infected_population = 10.0,
               expected_dispersion = 0.5*sqrt(2/3.14159),
-              IGSR = matrix(c(rep(c(2.01,0.101),2),11,1), nrow = 3, ncol = 2, byrow = TRUE))
+              IGSR = matrix(rep(c(2.01,0.101),3), nrow = 3, ncol = 2, byrow = TRUE))
 
 
 version <- version_list[1] # "true_epi"

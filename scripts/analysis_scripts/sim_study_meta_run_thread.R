@@ -18,7 +18,7 @@ for(rpl in 1:Replicates){
   local_intercept_var <- 1/rgamma(1,prior$IGSR[1,1],prior$IGSR[1,2])
   local_coef_var <- 1/rgamma(1,prior$IGSR[2,1],prior$IGSR[2,2])
   IIP <- 1 + rexp(K, 1/prior$expected_initial_infected_population)
-  dispersion <- abs(rnorm(K, sd = 0.5))
+  dispersion <- abs(rnorm(K, sd = prior$expected_dispersion/sqrt(2/3.14159)))
   alpha0 <- rnorm(1, mean = 0, sd = 0.2) 
   phi0 <-  rnorm(3, mean = 0, sd = 0.2)
   alpha <- rnorm(K, alpha0, sd = sqrt(local_intercept_var))
