@@ -47,7 +47,7 @@ thread <- Sys.getenv("SLURM_ARRAY_TASK_ID")
 # Use a common prior across all versions
 prior <- list(ell = J/5, V0 = c(10,10,0.000001), 
               expected_initial_infected_population = 10.0,
-              expected_dispersion = 5*sqrt(2/3.14159),
+              expected_dispersion = 0.5*sqrt(2/3.14159),
               IGSR = matrix(c(rep(c(2.01,0.101),2),11,1), nrow = 3, ncol = 2, byrow = TRUE))
 
 
