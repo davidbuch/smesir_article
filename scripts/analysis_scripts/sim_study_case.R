@@ -35,7 +35,7 @@ for(k in 1:K){
 
 # Plot covariates
 covariate_list <- list(X1, X2, X3, U1)
-pdf("output/sim_study_case/simstudy_covariates.pdf")
+png("output/sim_study_case/simstudy_covariates.png", width = 8, height = 8, units = 'in', res = 300)
 par(mfrow = c(2,2))
 for(i in 1:4){
   matplot(covariate_list[[i]], xlab = "time", ylab = NA, type = "l", 
@@ -64,7 +64,7 @@ for(k in 1:K){
 }
 
 ## Plot transmission rate
-pdf("output/sim_study_case/simstudy_beta.pdf")
+png("output/sim_study_case/simstudy_beta.png", width = 8, height = 8, units = 'in', res = 300)
 matplot(beta, type = "l", xlab = "time", ylab = NA, 
         cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5, lwd = 3, main = "Transmission Rate")
 legend("topright", c("Region 1", "Region 2", "Region 3", "Region 4", "Region 5"), bg = "white", lwd = 3, lty = 1:5, col = 1:6)
@@ -90,7 +90,7 @@ for(k in 1:K){
 }
 
 ## Plot "observed" data
-pdf("output/sim_study_case/simstudy_observed.pdf")
+png("output/sim_study_case/simstudy_observed.png", width = 8, height = 8, units = 'in', res = 300)
 matplot(Y, type = "l", xlab = "time", ylab = NA, 
         cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5, lwd = 3, main = "Incidence Events")
 legend("topright", c("Region 1", "Region 2", "Region 3", "Region 4", "Region 5"), bg = "white", lwd = 3, lty = 1:5, col = 1:6)
@@ -105,13 +105,13 @@ sdat <- list(deaths = Y[1:Jo,], X1 = X1[1:Jo,], X2 = X2[1:Jo,], X3 = X3[1:Jo,])
 epi_params <- list(region_populations = N, outbreak_times = T_1, mean_removal_time = 1/gamma, incidence_probabilities = psi, discount_period_length = 0)
 
 # priors should match generating distribution, 
-prior <- list(ell = J/5, V0 = c(10,10,0.000001), 
+prior <- list(ell = J/5, V0 = c(10,10,1e-16), 
               expected_initial_infected_population = 10.0,
               expected_dispersion = 0.5*sqrt(2/3.14159), # sd 0.5
               IGSR = matrix(rep(c(2.01,0.101),3), nrow = 3, ncol = 2, byrow = TRUE))
 
 start_time <- Sys.time()
-sfit <- smesir(deaths ~ X1 + X2 + X3, data = sdat, vaccinations = vaccinations, epi_params = epi_params, prior = prior, region_names = paste0("R", 1:K), quiet = FALSE)
+sfit <- smesir(deaths ~ X1 + X2 + X3, data = sdat, vaccinations = vaccinations, epi_params = epi_params, prior = prior, region_names = paste0("R", 1:K), quiet = TRUE)
 end_time <- Sys.time()
 print(end_time - start_time)
 
@@ -121,7 +121,7 @@ mcmc_diagnostics_table <- xtable(t(sapply(sfit$mcmc_diagnostics, function(x) c(R
 writeLines(print(mcmc_diagnostics_table), fileConn)
 close(fileConn)
 
-pdf("output/sim_study_case/simstudy_posteriors.pdf")
+png("output/sim_study_case/simstudy_posteriors.png", width = 8, height = 8, units = 'in', res = 300)
 par(mfrow = c(3,3))
 prior_rgb <- col2rgb('moccasin') / 255
 post_rgb <- col2rgb('dodgerblue2') / 255
@@ -151,27 +151,27 @@ hist(sfit$samples$Xi0[,4], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75
 
 # 5. local intercept variance
 local_int_var_prior <- 1/rgamma(10000, shape = sfit$prior$IGSR[1,1], rate = sfit$prior$IGSR[1,2])
-hist(local_int_var_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, main = "(e)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
+hist(local_int_var_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = c(seq(0,50,0.005), Inf), freq = F, main = "(e)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
 abline(v = local_intercept_var, col = truth_color, lwd = 3)
 hist(sfit$samples$V[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, add = TRUE)
 
 
 # 6. local coef variance
 local_coef_var_prior <- 1/rgamma(10000, shape = sfit$prior$IGSR[2,1], rate = sfit$prior$IGSR[2,2])
-hist(local_coef_var_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, main = "(f)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
+hist(local_coef_var_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = c(seq(0,50,0.005), Inf), freq = F, main = "(f)", ylim = c(0,35), xlim = c(0,0.1), xlab = NA)
 abline(v = local_coef_var, col = truth_color, lwd = 3)
 hist(sfit$samples$V[,2], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,50,0.005), freq = F, add = TRUE)
 
 
 # 7. dispersion parameter (R1)
 local_dispersion_prior <- abs(rnorm(10000, sd = sfit$prior$expected_dispersion/sqrt(2/3.14159)))
-hist(local_dispersion_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,20,0.5), freq = F, main = "(g)", ylim = c(0,1.5), xlim = c(0,10), xlab = NA)
+hist(local_dispersion_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,20,0.1), freq = F, main = "(g)", ylim = c(0,3), xlim = c(0,3), xlab = NA)
 abline(v = dispersion[1], col = truth_color, lwd = 3)
-hist(sfit$samples$DISP[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,20,0.5), freq = F, add = TRUE)
+hist(sfit$samples$DISP[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,20,0.1), freq = F, add = TRUE)
 
 # 8. initial infectious population (R1)
 iip_prior <- rexp(10000, 1/10)
-hist(iip_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,200,2), freq = F, main = "(h)", ylim = c(0,0.10), xlim = c(0,40), xlab = NA)
+hist(iip_prior, col = rgb(prior_rgb[1], prior_rgb[2], prior_rgb[3], 0.75), breaks = seq(0,200,2), freq = F, main = "(h)", ylim = c(0,0.25), xlim = c(0,40), xlab = NA)
 abline(v = IIP[1], col = truth_color, lwd = 3)
 hist(sfit$samples$IIP[,1], col = rgb(post_rgb[1], post_rgb[2], post_rgb[3], 0.75), breaks = seq(0,200,2), freq = F, add = TRUE)
 

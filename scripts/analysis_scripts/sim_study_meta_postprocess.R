@@ -26,6 +26,8 @@ for(version in version_list){
     FIT_SUMMARIES <- append(FIT_SUMMARIES,fit_summaries)
   }
   
+  MCMC_CONVERGED <- apply(MAX_RHAT, 1, max) < 1.1
+  
   # Make table about the posterior concentration
   # prior variance for the intercept and coefficients is 10
   # and the distribution is centered at zero
@@ -35,8 +37,8 @@ for(version in version_list){
       global_posterior_sds[i,p] <- FIT_SUMMARIES[[i]]$Global[p,2]
     }
   }
-  global_posterior_sds <- colMeans(global_posterior_sds)
-  prior_sds <- c(rep(sqrt(10),4),rep(.101^2/(((2.01 - 1)^2)*(2.01-2)),2),.2^2/(((3 - 1)^2)*(3 - 2)))
+  global_posterior_sds <- colMeans(global_posterior_sds[MCMC_CONVERGED,])
+  prior_sds <- c(rep(sqrt(10),4),rep(.101^2/(((2.01 - 1)^2)*(2.01-2)),3))
   
   conc_table <- rbind(prior_sds,global_posterior_sds)
   colnames(conc_table) <- names(FIT_SUMMARIES[[1]]$Global[1:7,2])
@@ -47,12 +49,14 @@ for(version in version_list){
   writeLines(print(concentration_table), fileConn)
   close(fileConn)
   
+  
+  
   # Make a table summarizing the coverage rate
   coverage_table <- matrix(nrow = 8, ncol = 6)
   colnames(coverage_table) <- c(paste0("R",1:5), "G")
   rownames(coverage_table) <- c("Intercept", "X1", "X2", "X3", "IIP","DISP","Local Int. Var.", "Local Coef. Var")
-  coverage_table[1:6,1:5] <- apply(LOCAL_COVERAGE,c(1,2),mean) # local average coverage
-  coverage_table[c(1:4,7:8),6] <- rowMeans(GLOBAL_COVERAGE[1:6,]) # global average coverage
+  coverage_table[1:6,1:5] <- apply(LOCAL_COVERAGE[,,MCMC_CONVERGED],c(1,2),mean) # local average coverage
+  coverage_table[c(1:4,7:8),6] <- rowMeans(GLOBAL_COVERAGE[1:6,MCMC_CONVERGED]) # global average coverage
   
   fileConn <- file(paste0("output/sim_study_meta/coverage_",version,".txt"))
   coverage_table <- xtable(coverage_table*100, digits = 0)
