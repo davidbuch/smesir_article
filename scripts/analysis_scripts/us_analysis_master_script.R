@@ -35,7 +35,7 @@ epi_params <- list(region_populations = state_populations,
                    mean_removal_time = infectious_period, 
                    incidence_probabilities = 
                      time_to_death%*%t(ifr_by_state[,ifr_level]),
-                   discount_period_length = 90,
+                   discount_period_length = endpoint,
                    discount_period_disp = 10)
 
 state_prior <- list(V0 = c(10,10,0.000001),
