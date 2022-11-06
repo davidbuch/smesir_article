@@ -1,5 +1,7 @@
 library(smesir)
 library(xtable)
+library(tidyverse)
+library(gridExtra)
 set.seed(123)
 
 J <- 50; K <- 5
@@ -186,12 +188,80 @@ plot_confint(re_posterior_confints, density = 20, col = rgb(post_rgb[1], post_rg
 dev.off()
 
 
-re_posterior_confints <- t(apply(exp(sfit$samples$Xi[,,3]%*%t(sfit$design_matrices$R3)),2, function(x) quantile(x,c(0.025,0.975))))
-plot(x = 1:J, y = beta[,3], type = "l", col = truth_color, lwd = 2, xlab = NA, ylab = NA, main = "(i)", ylim = c(min(re_posterior_confints), max(re_posterior_confints)))
-plot_confint <- function(bounds,density=NULL,angle=45,border=NULL,col=NA,lty = par("lty"),x=NULL){
-  if(is.null(x)) x <- 1:nrow(bounds)
-  polygon(c(x,rev(x)),c(bounds[,1],rev(bounds[,2])),density,angle,border,col,lty)
+# re_posterior_confints <- t(apply(exp(sfit$samples$Xi[,,3]%*%t(sfit$design_matrices$R3)),2, function(x) quantile(x,c(0.025,0.975))))
+# plot(x = 1:J, y = beta[,3], type = "l", col = truth_color, lwd = 2, xlab = NA, ylab = NA, main = "(i)", ylim = c(min(re_posterior_confints), max(re_posterior_confints)))
+# plot_confint <- function(bounds,density=NULL,angle=45,border=NULL,col=NA,lty = par("lty"),x=NULL){
+#   if(is.null(x)) x <- 1:nrow(bounds)
+#   polygon(c(x,rev(x)),c(bounds[,1],rev(bounds[,2])),density,angle,border,col,lty)
+# }
+# plot_confint(re_posterior_confints, density = 20, col = rgb(post_rgb[1], post_rgb[2], post_rgb[3]))
+
+
+## -- NOW, FIT ALL SINGLE REGION AND MULTI-REGION MODELS -- 
+prior <- list(ell = 15, V0 = c(10,10,1e-16), 
+              expected_initial_infected_population = 10.0,
+              expected_dispersion = 0.5*sqrt(2/3.14159), # sd 0.5
+              IGSR = matrix(rep(c(2.01,0.101),3), nrow = 3, ncol = 2, byrow = TRUE))
+epi_params <- list(region_populations = N, outbreak_times = T_1, mean_removal_time = 1/gamma, incidence_probabilities = psi, discount_period_length = 0)
+sdat <- list(deaths = Y, X1 = X1, X2 = X2, X3 = X3)
+sresG <- smesir(deaths ~ X1 + X2 + X3, data = sdat, epi_params = epi_params, prior = prior)
+
+sres <- list()
+for(k in 1:K){
+  prior <- list(ell = 15, V0 = c(10,10), 
+                expected_initial_infected_population = 10.0,
+                expected_dispersion = 0.5*sqrt(2/3.14159), # sd 0.5
+                IGSR = c(2.01,0.101))
+  epi_params <- list(region_populations = N[k], outbreak_times = T_1[k], mean_removal_time = 1/gamma, incidence_probabilities = psi, discount_period_length = 0, lengthscale = 10)
+  sdat <- data.frame(deaths = Y[,k], X1 = X1[,k], X2 = X2[,k], X3 = X3[,k])
+  sres[[k]] <- smesir(deaths ~ X1 + X2 + X3, data = sdat, epi_params = epi_params, prior = prior)
 }
-plot_confint(re_posterior_confints, density = 20, col = rgb(post_rgb[1], post_rgb[2], post_rgb[3]))
+
+intervalL <- list()
+intervalG <- list()
+for(k in 1:K){
+  intervalL[[k]] <- cbind(
+    t(exp(apply(sres[[k]]$design_matrices[[1]] %*% t(sres[[k]]$samples$Xi), 1, quantile, prob=c(0.025, 0.975)))),
+    beta[,k]
+  )
+  intervalG[[k]] <- cbind(
+    t(exp(apply(sresG$design_matrices[[k]] %*% t(sresG$samples$Xi[,,k]), 1, quantile, prob=c(0.025, 0.975)))),
+    beta[,k]
+  )
+}
+make_ribbonplot <- function(interval){
+  ggplot() + 
+    geom_ribbon(aes(x = 1:J, ymin = interval[,1], ymax = pmin(interval[,2],4))) + 
+    ylim(0,4) + 
+    labs(x = NULL, y = NULL) + 
+    geom_line(aes(x = 1:J, y = interval[,3]), color = "white")
+}
+
+rplotsL <- lapply(intervalL, make_ribbonplot)
+rplotsG <- lapply(intervalG, make_ribbonplot)
+g1 <- grid.arrange(grobs = rplotsL,
+                   widths = c(1),
+                   layout_matrix = matrix(1:K, ncol = 1), 
+                   top = "Single-Region Model")
+g2 <- grid.arrange(grobs = rplotsG,
+                   widths = c(1),
+                   layout_matrix = matrix(1:K, ncol = 1), 
+                   top = "Hierarchical Model")
+gB <- grid.arrange(grobs = list(g1,g2),
+                   widths = c(1,1),
+                   layout_matrix = matrix(1:2, nrow = 1), 
+                   left = "Region",
+                   top = "Dynamic Transmission Rates")
+
+ydat <- data.frame(cbind(1:J,Y))
+names(ydat) <- c("time", paste0('Y', 1:K))
+ydat <- ydat %>% pivot_longer(paste0('Y', 1:K), names_to = "region", names_prefix = "Y", values_to = "count")
+gT <- ggplot(ydat, aes(x = time, y = count, linetype = region)) + geom_line() + ggtitle("Regional Event Counts")
+
+png("output/sim_study_case/sr_vs_hier_betas.png", width = 8, height = 8, units = 'in', res = 300)
+g <- grid.arrange(grobs = list(gT, gB),
+                  heights = c(2,5),
+                  layout_matrix  = matrix(1:2, nrow = 2))
+dev.off()
 
 

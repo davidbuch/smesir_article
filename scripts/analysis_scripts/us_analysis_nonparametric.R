@@ -1,4 +1,7 @@
 library(smesir)
+library(ggplot2)
+library(latex2exp)
+
 data("covid_cases")
 data("covid_deaths")
 data("covid_vaccinations")
@@ -42,31 +45,13 @@ state_fit <- smesir(deaths ~ 1, data = outbreak_data,
 min(sapply(state_fit$mcmc_diagnostics, function(di) min(di[,2])), na.rm = T)
 max(sapply(state_fit$mcmc_diagnostics, function(di) max(di[,1])), na.rm = T)
 
-# If this doesn't work, an internal stopgap solution is to postprocess throw away
-# whichever chain has the highest best-case log likelihood and re-run until we get 
-# convergence
-
-# Long run solution ideas are:
-# - Pulling more from the spatial literature 
-# - Optimal transport map for inverse problems
-# - Dulling the likelihood: is there a way to compute a closed form normalization
-#   constant for a negative binomial whose mean is a linear combination of unknown
-#   values?
-
-
 betas <- betas_lower <- betas_upper <- matrix(0, nrow = nrow(delta_prevalence), ncol = ncol(delta_prevalence))
 for(k in 1:length(us_states)){
   state_beta_samps <- state_fit$design_matrices[[k]] %*% t(state_fit$samples$Xi[,,k])
-  # state_beta_quantiles <- t(apply(state_beta_samps, 1, quantile, probs = c(0.025, 0.5, 0.975)))
   betas[,k] <- rowMeans(state_beta_samps)
-  # betas[,k] <- state_beta_quantiles[,2]
-  # betas_lower[,k] <- state_beta_quantiles[,1]
-  # betas_upper[,k] <- state_beta_quantiles[,3]
-  # 
 }
 
-library(ggplot2)
-library(latex2exp)
+
 sel <- delta_prevalence > 0.0 & delta_prevalence < 1.0
 ggplot(mapping = aes(x = delta_prevalence[sel], y=betas[sel])) + 
   geom_point() + 
