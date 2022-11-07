@@ -1,6 +1,7 @@
 library(smesir)
 library(ggplot2)
 library(latex2exp)
+set.seed(123)
 
 data("covid_cases")
 data("covid_deaths")

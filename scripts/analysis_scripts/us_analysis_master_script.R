@@ -1,6 +1,9 @@
 library(smesir)
+# set.seed(as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID")))
+set.seed(as.integer(commandArgs(trailingOnly = TRUE)))
 
-slurm_task_id <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+# slurm_task_id <- as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+slurm_task_id <- as.integer(commandArgs(trailingOnly = TRUE))
 
 endpoint <- c(74, 77, 90)[ceiling(slurm_task_id/27)] # weeks of data
 version <- ((slurm_task_id - 1) %% 27) + 1 # used later to select epi parameters

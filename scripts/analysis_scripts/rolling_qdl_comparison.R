@@ -1,5 +1,6 @@
 library(smesir)
 library(data.table)
+set.seed(123)
 
 #------------------------------------------
 
@@ -90,6 +91,7 @@ test_period_end <- as.Date("2020-12-21")
 
 train_date_range <- seq.Date(train_period_start, train_period_end, by="day")
 test_date_range <- seq.Date(test_period_start, test_period_end, by="day")
+date_range <- c(train_date_range, test_date_range)
 
 sdat <- data.frame(cases = odt[odt$date %in% train_date_range]$case_counts)
 

@@ -1,6 +1,7 @@
 library(smesir)
 library(lubridate)
 library(DescTools)
+set.seed(123)
 
 # load covid data from the smesir package
 data("covid_vaccinations")

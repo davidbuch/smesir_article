@@ -1,5 +1,6 @@
 library(DescTools)
 library(latex2exp)
+set.seed(123)
 
 param_options <- expand.grid(ifr_level = c("L", "M", "H"), # index over using lower, middle, uppper end of range
                              infectious_period = c(1,1.5,2.0),

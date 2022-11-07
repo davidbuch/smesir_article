@@ -1,5 +1,6 @@
 library(smesir)
-set.seed(as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID")))
+# set.seed(as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID")))
+set.seed(as.integer(commandArgs(trailingOnly = TRUE)))
 
 version_list <- c("true_epi", "misspecified_epi_1", "misspecified_epi_2", "radically_misspecified_epi")
 
