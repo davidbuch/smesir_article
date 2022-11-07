@@ -1,6 +1,16 @@
+library(smesir)
+library(lubridate)
 library(DescTools)
 library(latex2exp)
 set.seed(123)
+
+# load covid data from the smesir package
+data("covid_vaccinations")
+data("covid_deaths")
+data("delta_prevalence")
+data("state_populations")
+us_states <- names(state_populations)
+
 
 param_options <- expand.grid(ifr_level = c("L", "M", "H"), # index over using lower, middle, uppper end of range
                              infectious_period = c(1,1.5,2.0),
