@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -o ./output/us_analysis/logs/postprocess_results.txt                                                              
-#SBATCH -e ./output/us_analysis/logs/postprocess_errors.err                                                                     
-#SBATCH -p dunsonlab --account=dunsonlab                                                                                
+#SBATCH -o ./output/postprocess_results.txt    
+#SBATCH -e ./output/postprocess_errors.err
+#SBATCH -p dunsonlab --account=dunsonlab
 #SBATCH --mem=10G
 
 module load R

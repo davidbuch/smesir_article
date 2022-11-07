@@ -60,7 +60,7 @@ ggplot(mapping = aes(x = delta_prevalence[sel], y=betas[sel])) +
        x = "Delta Prevalence as Percent of New Cases",
        y = TeX("$\\widehat{\\log\\beta}_{t,k}$")) + 
   theme(text = element_text(size=15))
-ggsave(filename = "beta_vs_delta.png", path = "output/figures/us_analysis/", 
+ggsave(filename = "beta_vs_delta.png", path = "output/us_analysis", 
        width = 7, height = 7, device='png', dpi=300)
 
 
