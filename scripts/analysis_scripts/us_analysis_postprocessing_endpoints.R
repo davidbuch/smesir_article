@@ -54,8 +54,29 @@ PLOTSTART <- 50 # lower bound on time
 event_quantile1 <- rowSums(apply(sfor[[names(endpoint[1])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.6))))
 event_quantile3 <- rowSums(apply(sfor[[names(endpoint[2])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.6))))
 
-png("output/us_analysis/endpoints/usa_endpoint_forecasts_alt.png", width = 8, height = 8, units = 'in', res = 300)
+# First version - 0.60 quantile lines and central 95% CIs
+png("output/us_analysis/endpoints/usa_endpoint_forecasts.png", width = 8, height = 8, units = 'in', res = 300)
 plot(weeks[PLOTSTART:endpoint[3]], rowSums(covid_deaths[PLOTSTART:endpoint[3],]), ylim=c(0,2.6e4), xaxt = 'n', xlab = NA, ylab = NA, main = "US Weekly COVID-19 Deaths", type = "l",lwd=2)
+axis(1, monthly,format(monthly, "%b %y"), cex.axis = 1)
+
+abline(v = weeks[endpoint[1]], col="moccasin")
+abline(v = weeks[endpoint[2]], col ="dodgerblue2")
+plot_confint(cbind(rowSums(apply(sfor[[names(endpoint[1])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.025))))[(endpoint[1] + 1):endpoint[3]],
+                   rowSums(apply(sfor[[names(endpoint[1])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.975))))[(endpoint[1] + 1):endpoint[3]]),x=weeks[(endpoint[1] + 1):endpoint[3]],density=20,angle=90, col="moccasin")
+plot_confint(cbind(rowSums(apply(sfor[[names(endpoint[2])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.025))))[(endpoint[2] + 1):endpoint[3]],
+                   rowSums(apply(sfor[[names(endpoint[2])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.975))))[(endpoint[2] + 1):endpoint[3]]),x=weeks[(endpoint[2] + 1):endpoint[3]],density=20,angle=0, col="dodgerblue2")
+
+
+lines(x=weeks[(endpoint[1] + 1):endpoint[3]],event_quantile1[(endpoint[1] + 1):endpoint[3]],lty = 3,lwd = 4, col="moccasin")
+lines(x=weeks[(endpoint[2] + 1):endpoint[3]],event_quantile3[(endpoint[2] + 1):endpoint[3]],lty = 4,lwd = 4, col="dodgerblue2")
+legend("topleft",legend = c("Forecast 95% CI after 74 weeks","Forecast 95% CI after 77 weeks","Forecast 0.60 Quantile after 74 weeks","Forecast 0.60 Quantile after 77 weeks"), fill = c("moccasin", "dodgerblue2", NA, NA), density = c(20,20,0,0), angle = c(90,0,NA,NA), border = c("moccasin", "dodgerblue2", NA, NA), lty = c(NA,NA,3,4), lwd = c(NA, NA, 4,4), col = c(NA,NA, "moccasin", "dodgerblue2"),cex = 1, bty = "o", bg = "white" )
+dev.off()
+
+# Alternate version - central 40% CIs, make sure full interval is visualized
+png("output/us_analysis/endpoints/usa_endpoint_forecasts_alt.png", width = 8, height = 8, units = 'in', res = 300)
+plot(weeks[PLOTSTART:endpoint[3]], rowSums(covid_deaths[PLOTSTART:endpoint[3],]), 
+     ylim=c(0,max(rowSums(apply(sfor[[names(endpoint[2])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.7))))[(endpoint[2] + 1):endpoint[3]])), 
+     xaxt = 'n', xlab = NA, ylab = NA, main = "US Weekly COVID-19 Deaths", type = "l",lwd=2)
 axis(1, monthly,format(monthly, "%b %y"), cex.axis = 1)
 
 abline(v = weeks[endpoint[1]], col="moccasin")
@@ -65,10 +86,9 @@ plot_confint(cbind(rowSums(apply(sfor[[names(endpoint[1])]]$expected_samples,c(1
 plot_confint(cbind(rowSums(apply(sfor[[names(endpoint[2])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.3))))[(endpoint[2] + 1):endpoint[3]],
                    rowSums(apply(sfor[[names(endpoint[2])]]$expected_samples,c(1,3),function(x) quantile(x, c(0.7))))[(endpoint[2] + 1):endpoint[3]]),x=weeks[(endpoint[2] + 1):endpoint[3]],density=20,angle=0, col="dodgerblue2")
 
-
 lines(x=weeks[(endpoint[1] + 1):endpoint[3]],event_quantile1[(endpoint[1] + 1):endpoint[3]],lty = 3,lwd = 4, col="moccasin")
 lines(x=weeks[(endpoint[2] + 1):endpoint[3]],event_quantile3[(endpoint[2] + 1):endpoint[3]],lty = 4,lwd = 4, col="dodgerblue2")
-legend("topleft",legend = c("Forecast 95% CI after 74 weeks","Forecast 95% CI after 77 weeks","Forecast 0.60 Quantile after 74 weeks","Forecast 0.60 Quantile after 77 weeks"), fill = c("moccasin", "dodgerblue2", NA, NA), density = c(20,20,0,0), angle = c(90,0,NA,NA), border = c("moccasin", "dodgerblue2", NA, NA), lty = c(NA,NA,3,4), lwd = c(NA, NA, 4,4), col = c(NA,NA, "moccasin", "dodgerblue2"),cex = 1, bty = "o", bg = "white" )
+legend("topleft",legend = c("Forecast Central 40% CI after 74 weeks","Forecast Central 40% CI after 77 weeks","Forecast 0.60 Quantile after 74 weeks","Forecast 0.60 Quantile after 77 weeks"), fill = c("moccasin", "dodgerblue2", NA, NA), density = c(20,20,0,0), angle = c(90,0,NA,NA), border = c("moccasin", "dodgerblue2", NA, NA), lty = c(NA,NA,3,4), lwd = c(NA, NA, 4,4), col = c(NA,NA, "moccasin", "dodgerblue2"),cex = 1, bty = "o", bg = "white" )
 dev.off()
 
 

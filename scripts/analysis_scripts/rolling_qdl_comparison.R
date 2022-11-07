@@ -91,7 +91,6 @@ test_period_end <- as.Date("2020-12-21")
 
 train_date_range <- seq.Date(train_period_start, train_period_end, by="day")
 test_date_range <- seq.Date(test_period_start, test_period_end, by="day")
-date_range <- c(train_date_range, test_date_range)
 
 sdat <- data.frame(cases = odt[odt$date %in% train_date_range]$case_counts)
 
@@ -107,7 +106,7 @@ event_confints <- t(apply(sforecast$event_samples, 1, quantile, probs = c(0.20, 
 
 png("output/us_analysis/cases/qdl_comparison.png", width = 8, height = 6, units = 'in', res = 300)
 plot_range <- seq.Date(as.Date("2020-11-07"), as.Date("2020-12-21"), by="day")
-plot(date_range, odt[odt$date %in% plot_range]$case_counts, type = "l",
+plot(plot_range, odt[odt$date %in% plot_range]$case_counts, type = "l",
      ylim = c(0, 24000), lty=1,
      xlab = "Date", ylab = "New Cases")
 matplot(test_date_range, event_confints[(n_train + 1):(n_train + n_test), ],

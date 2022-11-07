@@ -27,22 +27,22 @@ for(version in 1:NV){
 
 }
 
-median_forecast_74 <- matrix(nrow = 90, ncol = NV)
+q60_forecast_74 <- matrix(nrow = 90, ncol = NV)
 for(version in 1:NV){
   sfit <- readRDS(paste0("output/us_analysis/sfit_74_", version, ".rds"))
   sfor <- smesir_forecast(90-74, sfit,
                           new_x = list(delta_sq = delta_prevalence[75:90,]^2), 
                           new_vaccinations = covid_vaccinations[75:90,])
-  median_forecast_74[,version] <- rowSums(apply(sfor$expected_samples, c(1,3), quantile, 0.6))
+  q60_forecast_74[,version] <- rowSums(apply(sfor$expected_samples, c(1,3), quantile, 0.6))
 }
 
-median_forecast_77 <- matrix(nrow = 90, ncol = NV)
+q60_forecast_77 <- matrix(nrow = 90, ncol = NV)
 for(version in 1:NV){
   sfit <- readRDS(paste0("output/us_analysis/sfit_77_", version, ".rds"))
   sfor <- smesir_forecast(90-77, sfit,
                           new_x = list(delta_sq = delta_prevalence[78:90,]^2), 
                           new_vaccinations = covid_vaccinations[78:90,])
-  median_forecast_77[,version] <- rowSums(apply(sfor$expected_samples, c(1,3), quantile, 0.6))
+  q60_forecast_77[,version] <- rowSums(apply(sfor$expected_samples, c(1,3), quantile, 0.6))
 }
 
 
@@ -90,9 +90,9 @@ png("output/us_analysis/sensitivity/forecast_sensitivity.png", width = 8, height
 plot(weeks[PLOTSTART:90], rowSums(covid_deaths[PLOTSTART:90,]), xaxt = 'n', xlab = NA, ylab = NA, main = "US COVID-19 Deaths\nForecast Comparison", type = "l",lwd=2)
 axis(1, monthly,format(monthly, "%b %y"), cex.axis = 1)
 for(version in 1:NV){
-  lines(weeks[75:90], median_forecast_74[75:90,version], 
+  lines(weeks[75:90], q60_forecast_74[75:90,version], 
         col = floor((version - 1)/ 9) + 1)
-  lines(weeks[78:90], median_forecast_77[78:90,version], 
+  lines(weeks[78:90], q60_forecast_77[78:90,version], 
         col = floor((version - 1)/ 9) + 1, lty = 3)
 }
 legend_labels <- c(TeX('\u2113 $= 8$'), TeX('\u2113 $= 12$'), TeX('\u2113 $= 16$'))
