@@ -24,7 +24,6 @@ effect_summary <- matrix(nrow = NV, ncol = 3, dimnames = list(NULL, c("Mean", "L
 for(version in 1:NV){
   sfit <- readRDS(paste0("output/us_analysis/sfit_90_", version, ".rds"))
   effect_summary[version,] <- sfit$summary$Global[2,c(1,3,4)]
-
 }
 
 q60_forecast_74 <- matrix(nrow = 90, ncol = NV)
@@ -33,7 +32,11 @@ for(version in 1:NV){
   sfor <- smesir_forecast(90-74, sfit,
                           new_x = list(delta_sq = delta_prevalence[75:90,]^2), 
                           new_vaccinations = covid_vaccinations[75:90,])
-  q60_forecast_74[,version] <- rowSums(apply(sfor$expected_samples, c(1,3), quantile, 0.6))
+  q60_forecast_74[,version] <- apply(apply(sfor$event_samples, c(1,2), sum),
+                                       MARGIN = 1,
+                                       FUN = quantile,
+                                       prob = 0.4)
+
 }
 
 q60_forecast_77 <- matrix(nrow = 90, ncol = NV)
@@ -42,7 +45,10 @@ for(version in 1:NV){
   sfor <- smesir_forecast(90-77, sfit,
                           new_x = list(delta_sq = delta_prevalence[78:90,]^2), 
                           new_vaccinations = covid_vaccinations[78:90,])
-  q60_forecast_77[,version] <- rowSums(apply(sfor$expected_samples, c(1,3), quantile, 0.6))
+  q60_forecast_77[,version] <- apply(apply(sfor$event_samples, c(1,2), sum),
+                                     MARGIN = 1,
+                                     FUN = quantile,
+                                     prob = 0.4)
 }
 
 
