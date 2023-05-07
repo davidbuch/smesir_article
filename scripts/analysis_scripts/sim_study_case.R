@@ -229,16 +229,26 @@ for(k in 1:K){
     beta[,k]
   )
 }
-make_ribbonplot <- function(interval){
-  ggplot() + 
-    geom_ribbon(aes(x = 1:J, ymin = interval[,1], ymax = pmin(interval[,2],4))) + 
+make_ribbonplot <- function(interval, region_id){
+  interval <- as.data.frame(interval)
+  colnames(interval) <- c("lower", "upper", "truth")
+  interval$time <- 1:J
+  # tmpVar enables hack to use facet wrap title format
+  interval$tmpVar <- paste("Region", region_id)
+  
+  ggplot(interval) + 
+    geom_ribbon(aes(x = time, ymin = lower, ymax = pmin(upper,4))) + 
     ylim(0,4) + 
+    facet_wrap(~tmpVar) + 
     labs(x = NULL, y = NULL) + 
-    geom_line(aes(x = 1:J, y = interval[,3]), color = "white")
+    geom_line(aes(x = time, y = truth), color = "white") +
+    theme(strip.text = element_text(size = 8))
 }
 
-rplotsL <- lapply(intervalL, make_ribbonplot)
-rplotsG <- lapply(intervalG, make_ribbonplot)
+rplotsL <- lapply(1:length(intervalL), 
+                  \(id) make_ribbonplot(intervalL[[id]], id))
+rplotsG <- lapply(1:length(intervalG), 
+                  \(id) make_ribbonplot(intervalG[[id]], id))
 g1 <- grid.arrange(grobs = rplotsL,
                    widths = c(1),
                    layout_matrix = matrix(1:K, ncol = 1), 
@@ -250,13 +260,14 @@ g2 <- grid.arrange(grobs = rplotsG,
 gB <- grid.arrange(grobs = list(g1,g2),
                    widths = c(1,1),
                    layout_matrix = matrix(1:2, nrow = 1), 
-                   left = "Region",
+                   left = "Transmission Rate",
+                   bottom = "Time",
                    top = "Dynamic Transmission Rates")
 
 ydat <- data.frame(cbind(1:J,Y))
-names(ydat) <- c("time", paste0('Y', 1:K))
-ydat <- ydat %>% pivot_longer(paste0('Y', 1:K), names_to = "region", names_prefix = "Y", values_to = "count")
-gT <- ggplot(ydat, aes(x = time, y = count, linetype = region)) + geom_line() + ggtitle("Regional Event Counts")
+names(ydat) <- c("Time", paste0('Y', 1:K))
+ydat <- ydat %>% pivot_longer(paste0('Y', 1:K), names_to = "Region", names_prefix = "Y", values_to = "Count")
+gT <- ggplot(ydat, aes(x = Time, y = Count, linetype = Region)) + geom_line() + ggtitle("Regional Event Counts")
 
 png("output/sim_study_case/sr_vs_hier_betas.png", width = 8, height = 8, units = 'in', res = 300)
 g <- grid.arrange(grobs = list(gT, gB),
